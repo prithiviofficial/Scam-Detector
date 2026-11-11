@@ -15,10 +15,10 @@ st.markdown(
         background: linear-gradient(135deg, #0f172a 0%, #111827 55%, #172554 100%);
     }
 
-footer {
+    footer {
         visibility: hidden;
     }
-    
+
     .block-container {
         max-width: 1100px;
         padding: 2rem 2rem 4rem;
@@ -147,7 +147,7 @@ footer {
 @st.cache_resource
 def load_model():
     model_path = Path(__file__).resolve().parent / "model" / "scam_model.joblib"
-    expected_sha256 = "60D2E9BACED0741397F9FA44E509358C508306A5BCD227D08A61BC6F04DA9BF3"
+    expected_sha256 = "790E96B306F33DFA1B04484B95570FFF558AC8AEF8BEB7FCDB5F7E4ED86C3B2C"
 
     if not model_path.is_file():
         raise FileNotFoundError(f"Model file was not found: {model_path}")
@@ -165,11 +165,11 @@ model = load_model()
 RED_FLAGS = {
     "Asks for money or a fee": r"registration fee|security deposit|processing fee|pay (a|the)? ?fee|send money|refundable",
     "Too-good-to-be-true earnings": r"earn \$?\d+|guaranteed (income|salary|job)|easy money|no experience (needed|required)",
-    "Pushes you to chat on WhatsApp/Telegram": r"whatsapp|telegram",
-    "Uses a free email address": r"@gmail\.com|@yahoo\.com|@outlook\.com",
-    "Creates urgency": r"urgent|act now|limited (time|seats)|apply immediately|last chance",
-    "Asks for sensitive details": r"otp|bank details|aadhaar|pan card|password|card number|kyc",
-    "Prize or lottery claim": r"you have won|lottery|winner|claim your prize|free gift",
+    "Pushes you to chat on WhatsApp/Telegram": r"(?:contact|message|chat|reach).{0,40}(?:whatsapp|telegram)|(?:whatsapp|telegram).{0,40}(?:contact|message|chat|reach)",
+    "Uses a free email address": r"(?:contact|email|send|reach).{0,40}@(?:gmail|yahoo|outlook)\.com",
+    "Creates urgency": r"act now|limited (?:time|seats)|apply immediately|last chance",
+    "Asks for sensitive details": r"(?:share|send|provide|enter|verify).{0,30}(?:otp|bank details|aadhaar|pan card|password|card number|kyc)",
+    "Prize or lottery claim": r"you have won|lottery.{0,30}(?:claim|winner|prize)|claim (?:your )?prize|free gift",
 }
 
 st.markdown(
@@ -216,6 +216,11 @@ with analyze_tab:
     if st.button("🔍 Analyze message", type="primary"):
         if not text.strip():
             st.warning("Please paste some text first.")
+        elif len(text.split()) < 10:
+            st.info(
+                "Insufficient text for a reliable analysis. Please provide at least "
+                "10 words from the message."
+            )
         else:
             prob = float(model.predict_proba([clean(text)])[0][1])
             found = [name for name, pattern in RED_FLAGS.items() if re.search(pattern, text.lower())]

@@ -15,6 +15,10 @@ st.markdown(
         background: linear-gradient(135deg, #0f172a 0%, #111827 55%, #172554 100%);
     }
 
+footer {
+        visibility: hidden;
+    }
+    
     .block-container {
         max-width: 1100px;
         padding: 2rem 2rem 4rem;
